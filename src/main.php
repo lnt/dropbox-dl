@@ -39,6 +39,10 @@ if (empty($argv[1])) {
 $files = array();
 get_dropbox_files($url, $files, $recursive, $validExtensions);
 
+//print_r($files);
+
+//exit();
+
 foreach ($files as $folder => $folderList) {
 
     $destFolder = $dir . $folder;
@@ -47,13 +51,22 @@ foreach ($files as $folder => $folderList) {
         mkdir($destFolder, 0755, true);
     }
 
-    foreach ($folderList as $fileUrl) {
+    foreach ($folderList as $file) {
+        $fileUrl = $file[0];
         $filename = basename(preg_replace('/\?.*/', '', urldecode($fileUrl)));
         $destPath = $destFolder . $filename;
 
-        println('Downloading %s', $fileUrl);
+        if(file_exists($destPath)){
+            $filesize = filesize($destPath);
+            if($file[1] <= $filesize){
+                println('Already Exists %s %s ~ %s', $destPath, $filesize,$file[1]);
+                continue;
+            }
+           
+        } 
 
-        $attempts = 3;
+        println('Downloading %s', $fileUrl);
+                $attempts = 3;
         while ($attempts > 0) {
             copy($fileUrl, $destPath);
             if (file_exists($destPath)) {
@@ -69,5 +82,6 @@ foreach ($files as $folder => $folderList) {
 
             println('Failed to download %s', $fileUrl);
         }
+
     }
 }
